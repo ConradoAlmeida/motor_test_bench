@@ -36,6 +36,38 @@ ws://<host>/ws
 
 Observacao: o frontend usa automaticamente o host da pagina atual (`window.location.hostname`).
 
+## Tabela de Pinos (ESP32-S3 - Template)
+
+Tabela generica para documentar o hardware da bancada. Preencha conforme o seu esquematico final.
+
+| Sinal / Funcao | GPIO ESP32-S3 | Direcao | Nivel Logico | Periferico | Conector / Pino Fisico | Observacoes |
+|---|---|---|---|---|---|---|
+| PWM ESC 1 | GPIOXX | Saida | 3.3V | LEDC / PWM | Jx-1 | Frequencia e duty max |
+| PWM ESC 2 | GPIOXX | Saida | 3.3V | LEDC / PWM | Jx-2 | Se aplicavel |
+| RPM Sensor 1 | GPIOXX | Entrada | 3.3V | PCNT / GPIO INT | Jx-3 | Pull-up externo/interno |
+| RPM Sensor 2 | GPIOXX | Entrada | 3.3V | PCNT / GPIO INT | Jx-4 | Se aplicavel |
+| CAN TX | GPIOXX | Saida | 3.3V | TWAI | Jx-5 | Vai para transceiver CAN |
+| CAN RX | GPIOXX | Entrada | 3.3V | TWAI | Jx-6 | Vem do transceiver CAN |
+| I2C SDA | GPIOXX | Bidirecional | 3.3V | I2C | Jx-7 | Resistor de pull-up |
+| I2C SCL | GPIOXX | Saida | 3.3V | I2C | Jx-8 | Resistor de pull-up |
+| UART TX (Debug) | GPIOXX | Saida | 3.3V | UART | Jx-9 | Log serial |
+| UART RX (Debug) | GPIOXX | Entrada | 3.3V | UART | Jx-10 | Config / comandos |
+| SD SPI MOSI | GPIOXX | Saida | 3.3V | SPI | Jx-11 | Cartao SD |
+| SD SPI MISO | GPIOXX | Entrada | 3.3V | SPI | Jx-12 | Cartao SD |
+| SD SPI SCK | GPIOXX | Saida | 3.3V | SPI | Jx-13 | Cartao SD |
+| SD SPI CS | GPIOXX | Saida | 3.3V | SPI | Jx-14 | Chip Select SD |
+| Chave ESC PWR 1 | GPIOXX | Saida | 3.3V | GPIO | Jx-15 | Aciona estagio de potencia |
+| Chave ESC PWR 2 | GPIOXX | Saida | 3.3V | GPIO | Jx-16 | Se aplicavel |
+| LED Running | GPIOXX | Saida | 3.3V | GPIO | LED1 | Indicacao local |
+| LED Standby | GPIOXX | Saida | 3.3V | GPIO | LED2 | Indicacao local |
+| LED Error | GPIOXX | Saida | 3.3V | GPIO | LED3 | Indicacao local |
+
+Notas rapidas:
+
+- Evite usar pinos de strapping/boot para sinais criticos sem validar o comportamento no reset.
+- Confirme limites de corrente por GPIO e use driver/transistor quando necessario.
+- Para sinais externos, preveja protecao (TVS, resistor serie, filtro) conforme ambiente eletrico.
+
 ## Como Executar
 
 Como este projeto e estatico, voce pode abrir de duas formas:
