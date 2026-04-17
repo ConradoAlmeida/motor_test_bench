@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Test Bench - Dashboard</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="icon-cpu"></i>
+            <span>ESP32-S3</span>
+        </div>
+        
+        <!-- LED RGB -->
+        <div class="sidebar-section">
+            <div class="section-title">LED RGB</div>
+            <div id="ledPreview" class="led-preview"></div>
+            
+            <div class="slider-group">
+                <span class="slider-label text-danger">R</span>
+                <input type="range" id="sliderR" min="0" max="255" value="0">
+                <span id="valR" class="slider-value">0</span>
+            </div>
+            <div class="slider-group">
+                <span class="slider-label text-success">G</span>
+                <input type="range" id="sliderG" min="0" max="255" value="0">
+                <span id="valG" class="slider-value">0</span>
+            </div>
+            <div class="slider-group">
+                <span class="slider-label text-primary">B</span>
+                <input type="range" id="sliderB" min="0" max="255" value="0">
+                <span id="valB" class="slider-value">0</span>
+            </div>
+            
+            <div class="btn-group-vertical">
+                <button onclick="apagarLED()">OFF</button>
+                <button onclick="brancoLED()">BRANCO</button>
+                <button onclick="rainbowLED()">RAINBOW</button>
+            </div>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="sidebar-section">
+            <div class="section-title">Controle Motor</div>
+            <button id="btn-start" class="btn-control btn-start">START</button>
+            <button id="btn-stop" class="btn-control btn-stop">STOP</button>
+            <button id="btn-emergency" class="btn-control btn-emergency">EMERGENCY</button>
+        </div>
+        
+        <!-- Info -->
+        <div class="sidebar-section">
+            <div class="section-title">Info</div>
+            <div class="info-row">
+                <span>WiFi:</span>
+                <span class="text-cyan">ESP32-CAN</span>
+            </div>
+            <div class="info-row">
+                <span>CAN:</span>
+                <span class="text-cyan">250 kbps</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-title">
+                <h1>Engine Test Bench</h1>
+                <span class="subtitle">CAN-BUS Interface</span>
+            </div>
+            <div class="top-bar-actions">
+                <div class="connection-indicator">
+                    <span id="statusDot" class="status-dot disconnected"></span>
+                    <span id="connectionStatus">Desconectado</span>
+                </div>
+                <button id="connectBtn" onclick="connectWs()" class="btn-connect">Conectar</button>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="showTab('telemetry')">Telemetria</button>
+            <button class="tab-btn" onclick="showTab('controls')">Controles</button>
+        </div>
+
+        <!-- Tab: Dashboard -->
+        <div id="tab-dashboard" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">RPM</span>
+                    <span id="val-rpm" class="stat-value text-cyan">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Forca (N)</span>
+                    <span id="val-force" class="stat-value text-green">0.00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Corrente (A)</span>
+                    <span id="val-current" class="stat-value text-yellow">0.00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Tensao (V)</span>
+                    <span id="val-voltage" class="stat-value text-orange">0.00</span>
+                </div>
+            </div>
+
+            <!-- ESC Currents -->
+            <div class="esc-currents">
+                <div class="esc-card">
+                    <div class="esc-title">ESC 1</div>
+                    <div class="esc-current" id="esc1-current">0.00 A</div>
+                    <div class="esc-temp">Temp: <span id="esc1-temp">0</span>°C</div>
+                </div>
+                <div class="esc-card">
+                    <div class="esc-title">ESC 2</div>
+                    <div class="esc-current" id="esc2-current">0.00 A</div>
+                    <div class="esc-temp">Temp: <span id="esc2-temp">0</span>°C</div>
+                </div>
+            </div>
+
+            <!-- Monitor -->
+            <div class="monitor-section">
+                <div class="monitor-header">
+                    <span>Monitor CAN</span>
+                    <button onclick="clearTerminal()" class="btn-clear">Limpar</button>
+                </div>
+                <div id="terminal" class="terminal">
+                    <div class="init-message">Clique em "Conectar" para iniciar</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Telemetria -->
+        <div id="tab-telemetry" class="tab-content">
+            <div class="telemetry-grid">
+                <div class="chart-card">
+                    <div class="chart-title">RPM em Tempo Real</div>
+                    <canvas id="chart-rpm"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Forca (N)</div>
+                    <canvas id="chart-force"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Corrente Total (A)</div>
+                    <canvas id="chart-current"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Corrente por ESC</div>
+                    <canvas id="chart-esc"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Controles -->
+        <div id="tab-controls" class="tab-content">
+            <div class="controls-grid">
+                <!-- Modo de Operacao -->
+                <div class="control-card control-card-wide">
+                    <div class="control-title">Modo de Operacao</div>
+                    <div class="mode-toggle">
+                        <button id="mode-rpm" class="mode-btn active" onclick="setMode('RPM')">RPM</button>
+                        <button id="mode-pwm" class="mode-btn" onclick="setMode('PWM')">PWM</button>
+                    </div>
+                </div>
+
+                <!-- RPM Manual (so quando modo RPM) -->
+                <div id="control-rpm" class="control-card">
+                    <div class="control-title">RPM Manual</div>
+                    <input type="range" id="ctrl-rpm" class="rpm-slider" min="0" max="3000" value="0">
+                    <div class="rpm-value" id="val-rpm-manual">0</div>
+                </div>
+
+                <!-- PWM Manual (so quando modo PWM) -->
+                <div id="control-pwm" class="control-card" style="display:none;">
+                    <div class="control-title">PWM Manual (%)</div>
+                    <input type="range" id="ctrl-pwm" class="pwm-slider" min="0" max="100" value="0">
+                    <div class="pwm-value" id="val-pwm">0%</div>
+                </div>
+
+                <!-- Speed Presets -->
+                <div class="control-card">
+                    <div class="control-title">Velocidade RPM</div>
+                    <select id="ctrl-preset-speed" class="preset-select">
+                        <option value="0">OFF (0 RPM)</option>
+                        <option value="500">500 RPM</option>
+                        <option value="800">800 RPM</option>
+                        <option value="1000">1000 RPM</option>
+                        <option value="1200">1200 RPM</option>
+                        <option value="1500">1500 RPM</option>
+                    </select>
+                </div>
+
+                <!-- Power Switches -->
+                <div class="control-card">
+                    <div class="control-title">ESC Logic</div>
+                    <label class="switch-label">
+                        <span>ESC 1</span>
+                        <input type="checkbox" id="sw-esc-log1">
+                        <span class="slider-switch"></span>
+                    </label>
+                    <label class="switch-label">
+                        <span>ESC 2</span>
+                        <input type="checkbox" id="sw-esc-log2">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+
+                <div class="control-card">
+                    <div class="control-title">ESC Power</div>
+                    <label class="switch-label">
+                        <span>ESC 1</span>
+                        <input type="checkbox" id="sw-esc-pwr1">
+                        <span class="slider-switch"></span>
+                    </label>
+                    <label class="switch-label">
+                        <span>ESC 2</span>
+                        <input type="checkbox" id="sw-esc-pwr2">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
